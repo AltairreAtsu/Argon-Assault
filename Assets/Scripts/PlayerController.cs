@@ -27,11 +27,10 @@ public class PlayerController : MonoBehaviour {
 	private float controlRollFactor = -30f;
 
 	[Header("Linked Objects")]
-	[SerializeField][Tooltip ("The Explosion Prefab GFX from the Ship itself.")]
-	private GameObject explosionPrefab;
 	[SerializeField][Tooltip ("The Bullet Particle System Holder Gameobject.")]
 	private GameObject bulletsObject;
 
+	private ExplosionObjectPool explosionPool;
 	private MeshRenderer[] renderers;
 	private ParticleSystem[] bulletSystems;
 
@@ -41,6 +40,7 @@ public class PlayerController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		var collisionHandler = GetComponent<PlayerCollisonHandler>();
+		explosionPool = FindObjectOfType<ExplosionObjectPool>();
 		renderers = GetComponentsInChildren<MeshRenderer>();
 		bulletSystems = bulletsObject.GetComponentsInChildren<ParticleSystem>();
 
@@ -83,12 +83,7 @@ public class PlayerController : MonoBehaviour {
 	{
 		if (alive)
 		{
-			explosionPrefab.GetComponent<AudioSource>().Play();
-			ParticleSystem[] particleSystems = explosionPrefab.GetComponentsInChildren<ParticleSystem>();
-			foreach (ParticleSystem particleSystem in particleSystems)
-			{
-				particleSystem.Play();
-			}
+			explosionPool.SpawnExplosion(transform.position);
 
 			foreach (MeshRenderer render in renderers)
 			{
