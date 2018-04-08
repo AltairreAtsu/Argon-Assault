@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour {
+	private AudioSource audioSource;
 	private static ExplosionObjectPool explosionPool;
 	private static Scoreboard scoreboard;
 
@@ -10,12 +11,15 @@ public class Enemy : MonoBehaviour {
 
 	[SerializeField][Tooltip ("Amount of Points awarded upon killing this enemy.")]
 	private int scoreValue = 12;
+	[SerializeField][Tooltip ("Ammount of hits an enemy can take.")]
+	private int hits = 10;
 	
 	private void Start()
 	{
 		AssignSingletons();
 		CheckMeshCollider();
 
+		audioSource = GetComponent<AudioSource>();
 	}
 
 	private static void AssignSingletons()
@@ -41,9 +45,21 @@ public class Enemy : MonoBehaviour {
 
 	private void OnParticleCollision(GameObject other)
 	{
-		if(selfDestructing) { return;  }
+		if (selfDestructing) { return; }
+		hits--;
 
-		print("Particles COllided with: " + gameObject.name);
+		if (!audioSource.isPlaying)
+		{
+			audioSource.Play();
+		}
+		if(hits <= 0)
+		{
+			Kill();
+		}
+	}
+
+	private void Kill()
+	{
 		explosionPool.SpawnExplosion(transform.position);
 		scoreboard.ScoreHit(scoreValue);
 		selfDestructing = true;

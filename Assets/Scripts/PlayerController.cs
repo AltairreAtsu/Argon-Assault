@@ -30,21 +30,30 @@ public class PlayerController : MonoBehaviour {
 	[SerializeField][Tooltip ("The Bullet Particle System Holder Gameobject.")]
 	private GameObject bulletsObject;
 
+	[Header("Misc")]
+	[SerializeField][Tooltip ("The amount to decriment the audiosource volume by per iteraiton when fading out.")]
+	private float fadeOffDecriment = .1f;
+
+	private AudioSource audioSource;
 	private ExplosionObjectPool explosionPool;
 	private MeshRenderer[] renderers;
 	private ParticleSystem[] bulletSystems;
 
 	private float xThrow, yThrow;
+	private float originalBulletVolume;
 	private bool alive = true;
 
 	// Use this for initialization
 	void Start () {
 		var collisionHandler = GetComponent<PlayerCollisonHandler>();
+		audioSource = GetComponent<AudioSource>();
 		explosionPool = FindObjectOfType<ExplosionObjectPool>();
 		renderers = GetComponentsInChildren<MeshRenderer>();
 		bulletSystems = bulletsObject.GetComponentsInChildren<ParticleSystem>();
 
 		collisionHandler.PlayerCollisionObservers += StartDeathSequence;
+
+		originalBulletVolume = audioSource.volume;
 	}
 	
 	// Update is called once per frame
@@ -54,6 +63,7 @@ public class PlayerController : MonoBehaviour {
 
 		ProccessTranslation();
 		ProcessRotation();
+		ProcessFireing();
 	}
 
 	private void ProcessRotation()
@@ -79,11 +89,45 @@ public class PlayerController : MonoBehaviour {
 		transform.localPosition = new Vector3(newXPos, newYPos, transform.localPosition.z);
 	}
 
+	private void ProcessFireing()
+	{
+		if (CrossPlatformInputManager.GetButtonDown("Fire1"))
+		{
+			foreach(ParticleSystem particleSystem in bulletSystems)
+			{
+				particleSystem.Play();
+				StopAllCoroutines();
+				audioSource.volume = originalBulletVolume;
+				audioSource.Play();
+			}
+		}
+		else if (CrossPlatformInputManager.GetButtonUp("Fire1"))
+		{
+			foreach (ParticleSystem particleSystem in bulletSystems)
+			{
+				particleSystem.Stop();
+				StartCoroutine("fadeOutBulletSFX");
+			}
+		}
+	}
+
+	private IEnumerator fadeOutBulletSFX()
+	{
+		while (audioSource.volume != 0f)
+		{
+			audioSource.volume -= fadeOffDecriment * Time.deltaTime;
+			yield return null;
+		}
+		audioSource.Stop();
+	}
+
 	private void StartDeathSequence()
 	{
 		if (alive)
 		{
 			explosionPool.SpawnExplosion(transform.position);
+			StopAllCoroutines();
+			audioSource.Stop();
 
 			foreach (MeshRenderer render in renderers)
 			{
@@ -97,6 +141,4 @@ public class PlayerController : MonoBehaviour {
 			alive = false;
 		}
 	}
-
-
 }
