@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
-public class Player : MonoBehaviour {
+public class PlayerController : MonoBehaviour {
 
+	[Header ("Screen position clamps and movement Speed")]
 	[SerializeField][Tooltip ("In ms^-1")]
 	private float xSpeed = 4f;
 	[SerializeField][Tooltip("In ms^-1")]
@@ -15,6 +16,7 @@ public class Player : MonoBehaviour {
 	[SerializeField][Tooltip("The amount of padding to have on the sides of the screen to prevent player movement.")]
 	private float yClamp = 4.5f;
 
+	[Header ("Rotation Controls")]
 	[SerializeField]
 	private float positionPitchFactor = -5f;
 	[SerializeField]
@@ -24,16 +26,32 @@ public class Player : MonoBehaviour {
 	[SerializeField]
 	private float controlRollFactor = -30f;
 
+	[Header("Linked Objects")]
+	[SerializeField][Tooltip ("The Explosion Prefab GFX from the Ship itself.")]
+	private GameObject explosionPrefab;
+	[SerializeField][Tooltip ("The Bullet Particle System Holder Gameobject.")]
+	private GameObject bulletsObject;
+
+	private MeshRenderer[] renderers;
+	private ParticleSystem[] bulletSystems;
+
 	private float xThrow, yThrow;
+	private bool alive = true;
 
 	// Use this for initialization
 	void Start () {
-		
+		var collisionHandler = GetComponent<PlayerCollisonHandler>();
+		renderers = GetComponentsInChildren<MeshRenderer>();
+		bulletSystems = bulletsObject.GetComponentsInChildren<ParticleSystem>();
+
+		collisionHandler.PlayerCollisionObservers += StartDeathSequence;
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
+		if(!alive) { return;  }
+
 		ProccessTranslation();
 		ProcessRotation();
 	}
@@ -60,4 +78,30 @@ public class Player : MonoBehaviour {
 
 		transform.localPosition = new Vector3(newXPos, newYPos, transform.localPosition.z);
 	}
+
+	private void StartDeathSequence()
+	{
+		if (alive)
+		{
+			explosionPrefab.GetComponent<AudioSource>().Play();
+			ParticleSystem[] particleSystems = explosionPrefab.GetComponentsInChildren<ParticleSystem>();
+			foreach (ParticleSystem particleSystem in particleSystems)
+			{
+				particleSystem.Play();
+			}
+
+			foreach (MeshRenderer render in renderers)
+			{
+				render.enabled = false;
+			}
+
+			foreach (ParticleSystem particleSystem in bulletSystems)
+			{
+				particleSystem.Stop();
+			}
+			alive = false;
+		}
+	}
+
+
 }
