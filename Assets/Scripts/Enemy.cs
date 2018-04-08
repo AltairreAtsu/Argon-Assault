@@ -3,17 +3,50 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour {
-	private ExplosionObjectPool explosionPool;
+	private static ExplosionObjectPool explosionPool;
+	private static Scoreboard scoreboard;
 
+	private bool selfDestructing = false;
+
+	[SerializeField][Tooltip ("Amount of Points awarded upon killing this enemy.")]
+	private int scoreValue = 12;
+	
 	private void Start()
 	{
-		explosionPool = FindObjectOfType<ExplosionObjectPool>();
+		AssignSingletons();
+		CheckMeshCollider();
+
+	}
+
+	private static void AssignSingletons()
+	{
+		if (!scoreboard)
+		{
+			scoreboard = FindObjectOfType<Scoreboard>();
+		}
+		if (!explosionPool)
+		{
+			explosionPool = FindObjectOfType<ExplosionObjectPool>();
+		}
+	}
+
+	private void CheckMeshCollider()
+	{
+		if (!GetComponent<MeshCollider>())
+		{
+			var meshColl = gameObject.AddComponent<MeshCollider>();
+			meshColl.sharedMesh = GetComponent<MeshFilter>().mesh;
+		}
 	}
 
 	private void OnParticleCollision(GameObject other)
 	{
+		if(selfDestructing) { return;  }
+
 		print("Particles COllided with: " + gameObject.name);
 		explosionPool.SpawnExplosion(transform.position);
+		scoreboard.ScoreHit(scoreValue);
+		selfDestructing = true;
 		Destroy(gameObject);
 	}
 }
