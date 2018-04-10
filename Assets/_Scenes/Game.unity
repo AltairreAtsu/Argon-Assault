@@ -472,6 +472,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scoreValue: 12
+  hits: 10
 --- !u!4 &170542164 stripped
 Transform:
   m_PrefabParentObject: {fileID: 4639855760721860, guid: b1608fc20eaf25f49bd6228ecf3f0862,

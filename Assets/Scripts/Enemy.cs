@@ -46,15 +46,21 @@ public class Enemy : MonoBehaviour {
 	private void OnParticleCollision(GameObject other)
 	{
 		if (selfDestructing) { return; }
-		hits--;
 
+		ProcessHit();
+
+		if (hits <= 0)
+		{
+			Kill();
+		}
+	}
+
+	private void ProcessHit()
+	{
+		hits--;
 		if (!audioSource.isPlaying)
 		{
 			audioSource.Play();
-		}
-		if(hits <= 0)
-		{
-			Kill();
 		}
 	}
 
@@ -63,6 +69,7 @@ public class Enemy : MonoBehaviour {
 		explosionPool.SpawnExplosion(transform.position);
 		scoreboard.ScoreHit(scoreValue);
 		selfDestructing = true;
+		print("Running!");
 		Destroy(gameObject);
 	}
 }
