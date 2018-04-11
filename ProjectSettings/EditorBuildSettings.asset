@@ -11,3 +11,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/Game.unity
     guid: 27c88ea482ca2524bb4b4fd1db7862ec
+  - enabled: 1
+    path: Assets/_Scenes/Canyon.unity
+    guid: 20b18ed58f9c3b842ae0e1e24d422efe
